@@ -14,6 +14,8 @@ public class BeholderBot extends TelegramLongPollingBot {
     public int TextToVariants(String text){
        if (text.contains("Помощь"))
            return 1;
+       if (text.contains("Нарушители"))
+           return 2;
        return 0;
     };
     @Override
@@ -26,7 +28,9 @@ public class BeholderBot extends TelegramLongPollingBot {
                 case 1:
                     message.setText("Привет, "+update.getMessage().getChat().getFirstName()+"!  Я бот-помощник Beholder!" );
                     break;
-
+                case 2:
+                    message.setText("Я ещё в разработке и не могу вывести список нарушителей.");
+                    break;
                 default:
                     message.setText("Ничего не понимаю. Отправь помощь, чтобы получить список возможных команд "+ TextToVariants(messageText));
                     break;
