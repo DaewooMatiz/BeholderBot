@@ -23,16 +23,14 @@ public class BeholderBot extends TelegramLongPollingBot {
             message.setChatId(update.getMessage().getChatId().toString());
             String messageText = update.getMessage().getText();
             switch (TextToVariants(messageText)){
-                case '1':
-                {
+                case 1:
                     message.setText("Привет, "+update.getMessage().getChat().getFirstName()+"!  Я бот-помощник Beholder!" );
                     break;
-                }
+
                 default:
-                {
                     message.setText("Ничего не понимаю. Отправь помощь, чтобы получить список возможных команд "+ TextToVariants(messageText));
                     break;
-                }
+
             }
 
 
