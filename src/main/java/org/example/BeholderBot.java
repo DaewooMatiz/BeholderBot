@@ -10,13 +10,16 @@ import org.w3c.dom.Text;
 import java.io.File;
 
 public class BeholderBot extends TelegramLongPollingBot {
-
     public int TextToVariants(String text){
+       if (text.contains("Выход"))
+           return 0;
        if (text.contains("Помощь"))
            return 1;
        if (text.contains("Нарушители"))
            return 2;
-       return 0;
+       if (text.contains("Настройки"))
+           return 3;
+       return -1;
     };
     @Override
     public void onUpdateReceived(Update update) {
@@ -26,13 +29,22 @@ public class BeholderBot extends TelegramLongPollingBot {
             String messageText = update.getMessage().getText();
             switch (TextToVariants(messageText)){
                 case 1:
-                    message.setText("Привет, "+update.getMessage().getChat().getFirstName()+"!  Я бот-помощник Beholder!" );
+                    message.setText("Бот помщник Beholder призван помогать скифам выбирать комнаты для посещения, контроллировать нарушителей, следить за графиком дежурств." +
+                            "Возможные команды: Помощь, Нарушители" );
                     break;
                 case 2:
                     message.setText("Я ещё в разработке и не могу вывести список нарушителей.");
                     break;
+                case 3:
+                    if (update.getMessage().getChat().getUserName().equals("RenaultLogan496")||update.getMessage().getChat().getUserName().equals("vantouse"))
+                    {
+                        message.setText("ACCESS GRANTED. HELLO "+update.getMessage().getChat().getFirstName());
+                    }
+                     else  {
+                    message.setText("Ай-яй-яй! Дитям тута не место!");}
+                    break;
                 default:
-                    message.setText("Ничего не понимаю. Отправь помощь, чтобы получить список возможных команд "+ TextToVariants(messageText));
+                    message.setText("Привет, "+update.getMessage().getChat().getFirstName()+"!  Я бот-помощник Beholder!");
                     break;
 
             }
