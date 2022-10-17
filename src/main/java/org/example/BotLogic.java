@@ -5,10 +5,7 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class BotLogic {
     private int CurrentDialogueStatus = 0;
@@ -34,7 +31,8 @@ public class BotLogic {
         var Current = iterator.next();
             file.write(Data.get(Current)[0]+"/"+
                         Data.get(Current)[1]+"/"+
-                        Data.get(Current)[2]+"\n");
+                        Data.get(Current)[2]+"/"+
+                        Data.get(Current)[3]+"\n");
         }
     file.close();
     }
@@ -82,7 +80,7 @@ public class BotLogic {
                         break;
                     case 5:
                         if (UserName.equals("RenaultLogan496")
-                                ||UserName.equals("vantouse"))
+                                ||UserName.equals("vantouse")||UserName.equals("Vadyanc"))
                         {
                             answer = "Введите данные о комнате следующим образом:\n Номер/Фамилии через пробел";
                             CurrentDialogueStatus = 51;
@@ -104,18 +102,23 @@ public class BotLogic {
                 try {
                     Message = Message;
                     Map<String, String[]> Data = LoadData("src/main/java/org/example/data.txt");
-                    answer = "Проживают: " + Data.get(Message)[1] + "\nПосещений: " + Data.get(Message)[2];
+                    answer = "Проживают: " + Data.get(Message)[1] + "\nПосещений: " + Data.get(Message)[2] +
+                            "\nПоследнее посещение: " + Data.get(Message)[3];
 
                 } catch (Exception e) {
                     answer = "Хмм, похоже такой комнаты нет в моей базе...\n Напиши Добавить, внеси вклад в общее дело!";
                 }
                 CurrentDialogueStatus = 0;
                 break;
-            case 31://акт
+            case 31://посещении
                 try {
                     Map<String, String[]> Data = LoadData("src/main/java/org/example/data.txt");
-                    String Fee = Integer.toString(Integer.parseInt(Data.get(Message)[2])+1);
-                    String Temp[] = {Data.get(Message)[0],Data.get(Message)[1],Fee};
+                    String Visit = Integer.toString(Integer.parseInt(Data.get(Message)[2])+1);
+                    Date Date = new Date();
+                    String DateStr= Date.toString().split(" ")[1]+ " " +
+                            Date.toString().split(" ")[2] + " " +
+                            Date.toString().split(" ")[3];
+                    String Temp[] = {Data.get(Message)[0],Data.get(Message)[1],Visit,DateStr};
                     Data.put(Message,Temp);
                     SaveData(Data,"src/main/java/org/example/data.txt");
                     answer = "Успешно";
@@ -128,14 +131,14 @@ public class BotLogic {
             case 51://добавление новой комнаты
                 try {
                     Map<String, String[]> Data = LoadData("src/main/java/org/example/data.txt");
-                    Message += "/0";
+                    Message += "/0/Никогда";
                     String[] NewRoom = Message.split("/");
                     Data.put(NewRoom[0],NewRoom);
                     SaveData(Data,"src/main/java/org/example/data.txt");
                     answer = "Успешно";
 
                 } catch (Exception e) {
-                    answer = "Что-то пошло не так((\nПередай вот это @RenaultLogan496\n" + e.toString();
+                    answer = "Что-то пошло не так((\nПередай вот это @RenaultLogan496\n" + e.toString() + "\nА ещё ты базу данных сломал.\nТоже ему передай, он обрадуется";
                 }
                 CurrentDialogueStatus = 0;
                 break;
