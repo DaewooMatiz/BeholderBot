@@ -1,7 +1,5 @@
 package org.example;
 
-import org.telegram.telegrambots.meta.api.objects.User;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -9,7 +7,7 @@ import java.util.*;
 
 public class BotLogic {
     private int CurrentDialogueStatus = 0;
-    private String UserName = "";
+    private String CurrentUserName = "";
     private Map<String,String[]> LoadData(String filename) throws Exception{
         String RawData;
         FileReader file = new FileReader(filename);
@@ -52,14 +50,25 @@ public class BotLogic {
 
         return -1;
     }
-
+    private Boolean IsAdmin(String UserName){
+        if(UserName.equals("RenaultLogan496")){
+                return true;
+        }
+        else if(UserName.equals("vantouse")){
+            return true;
+        }
+        else if(UserName.equals("Vadyanc")){
+            return true;
+        }
+        else return false;
+    }
     public void SetDialogueStatus(int status){
         CurrentDialogueStatus = status;
     }
     public int GetDialogueStatusUpdate(){
         return CurrentDialogueStatus;
     }
-    public void SetUser(String user) { UserName = user; }
+    public void SetUser(String user) { CurrentUserName = user; }
     public String CreateAnswer (String Message){
         String answer = "";
         switch (CurrentDialogueStatus){
@@ -79,8 +88,7 @@ public class BotLogic {
                         CurrentDialogueStatus = 31;
                         break;
                     case 5:
-                        if (UserName.equals("RenaultLogan496")
-                                ||UserName.equals("vantouse")||UserName.equals("Vadyanc"))
+                        if (IsAdmin(CurrentUserName))
                         {
                             answer = "Введите данные о комнате следующим образом:\n Номер/Фамилии через пробел";
                             CurrentDialogueStatus = 51;
@@ -89,7 +97,7 @@ public class BotLogic {
                             answer = "У вас нет доступа к этой функции";}
                         break;
                     default:
-                        answer = "Привет," + "@" + UserName + "!\n Я бот-помощник Бехолдер!\n" +
+                        answer = "Привет," + "@" + CurrentUserName + "!\n Я бот-помощник Бехолдер!\n" +
                                 "Информация - информация о комнате\n" +
                                 "Посетил - сообщить о посещении комнаты\n" +
                                 "Добавить - добавить комнату\n" +
