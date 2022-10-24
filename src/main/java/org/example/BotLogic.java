@@ -160,7 +160,7 @@ public class BotLogic {
                 answer = "Похоже тебя нет в базе. Добавляю...";
                 db.addUser(CurrentUser);
             }
-            db.closeDataBase();
+
 
 
         } catch (SQLException e) {
