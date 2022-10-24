@@ -9,7 +9,7 @@ public class Main {
     public static void main(String[] args) {
 
         try {
-            BotLogic botLogic = new BotLogic(new DataBase("jdbc:sqlite:C:/Users/vova2/IdeaProjects/BeholderBot/src/main/DataBase.db"));
+            BotLogic botLogic = new BotLogic(new DataBase(System.getenv("URL_DB")));
             TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
             botsApi.registerBot(new BeholderBot(System.getenv("BOT_TOKEN"), System.getenv("BOT_NAME"), botLogic));
         } catch (TelegramApiException e) {
