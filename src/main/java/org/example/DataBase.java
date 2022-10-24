@@ -1,9 +1,8 @@
 package org.example;
 import java.sql.*;
 public class DataBase {
-    private static final String path = "jdbc:sqlite:C:/Users/vova2/IdeaProjects/BeholderBot/src/main/DataBase.db";
-    private Connection connection;
-    private Statement statement;
+    private final Connection connection;
+    private final Statement statement;
     private ResultSet result_set;
 
     private int boolToInt(Boolean input){
@@ -13,7 +12,7 @@ public class DataBase {
             return 0;
     }
 
-    public DataBase() throws SQLException, ClassNotFoundException {
+    public DataBase(String path) throws SQLException, ClassNotFoundException {
         Class.forName("org.sqlite.JDBC");
         connection = DriverManager.getConnection(path);
         statement = connection.createStatement();
@@ -26,17 +25,13 @@ public class DataBase {
 
     public User getUser(Long User_ID) throws SQLException{
         result_set = statement.executeQuery("SELECT * FROM Users WHERE User_ID IN ('" + User_ID + "')");
-        User found_User = new User(result_set.getLong("User_ID"), result_set.getString("User_Name"),
+        return new User(result_set.getLong("User_ID"), result_set.getString("User_Name"),
                 result_set.getBoolean("Is_SKIF"), result_set.getBoolean("Is_Admin"));
-        return found_User;
     }
 
     public Boolean isUserExists(Long User_ID) throws SQLException{
         result_set = statement.executeQuery("SELECT * FROM Users WHERE User_ID IN ('" + User_ID + "')");
-        if (result_set.getLong("User_ID") <= 0) {
-            return false;
-        }
-        return true;
+        return result_set.getLong("User_ID") > 0;
     }
 
     public void closeDataBase() throws SQLException{

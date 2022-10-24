@@ -6,11 +6,11 @@ public class User {
     public Boolean Is_SKIF;
     public Boolean Is_Admin;
 
-    public User(Long User_IDt, String User_Namet, Boolean Is_SKIFt, Boolean Is_Admint ){
-        User_ID = User_IDt;
-        User_Name = User_Namet;
-        Is_SKIF = Is_SKIFt;
-        Is_Admin = Is_Admint;
+    public User(Long User_ID, String User_Name, Boolean Is_SKIF, Boolean Is_Admin ){
+        this.User_ID = User_ID;
+        this.User_Name = User_Name;
+        this.Is_SKIF = Is_SKIF;
+        this.Is_Admin = Is_Admin;
 
     }
 }
