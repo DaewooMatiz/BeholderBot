@@ -1,10 +1,7 @@
 package org.example;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Date;
 
 public class BotLogic {
     public BotLogic(DataBase db){
@@ -12,31 +9,7 @@ public class BotLogic {
     }
     private int CurrentDialogueStatus = 0;
     private final DataBase db;
-    private Map<String, String[]> loadData() throws Exception {
-        String RawData;
-        FileReader file = new FileReader("src/main/java/org/example/data.txt");
-        BufferedReader BufferedFile = new BufferedReader(file);
-        Map<String, String[]> Data = new HashMap<>();
-        while ((RawData = BufferedFile.readLine()) != null) {
-            Data.put(RawData.split("/")[0], RawData.split("/"));
-        }
-        file.close();
-        return Data;
-    }
 
-    private void saveData(Map<String, String[]> Data) throws Exception {
-        Set<String> Rooms = Data.keySet();
-        Iterator<String> iterator = Rooms.iterator();
-        FileWriter file = new FileWriter("src/main/java/org/example/data.txt");
-        while (iterator.hasNext()) {
-            var Current = iterator.next();
-            file.write(Data.get(Current)[0] + "/" +
-                    Data.get(Current)[1] + "/" +
-                    Data.get(Current)[2] + "/" +
-                    Data.get(Current)[3] + "\n");
-        }
-        file.close();
-    }
 
     private int textToVariants(String text) {
         if (text.contains("Выход"))
@@ -66,6 +39,7 @@ public class BotLogic {
     public String createAnswer(String Message, Long user_ID, String user_Name) {
         String answer = "";
         User CurrentUser = new User(user_ID, user_Name, false, false);
+        Room CurrentRoom;
         try {
             if (db.isUserExists(user_ID)) {
                 CurrentUser = db.getUser(user_ID);
@@ -112,46 +86,34 @@ public class BotLogic {
                         }
                         break;
                     case 21:// инфа о комнате
-                        try {
-                            Map<String, String[]> Data = loadData();
-                            answer = "Проживают: " + Data.get(Message)[1] + "\nПосещений: " + Data.get(Message)[2] +
-                                    "\nПоследнее посещение: " + Data.get(Message)[3];
-
-                        } catch (Exception e) {
+                        if (db.isRoomExists(Integer.parseInt(Message))) {
+                            CurrentRoom = db.getRoom(Integer.parseInt(Message));
+                            answer = "Комната номер " + CurrentRoom.getRoom_Number() + "\nПосещений: " + CurrentRoom.getVisited_Times() +
+                                    "\nПоследнее посещение: " + CurrentRoom.getLast_Visit() + "\nНарушений: " + CurrentRoom.getWarnings();
+                        }
+                        else {
                             answer = "Хмм, похоже такой комнаты нет в моей базе...\n Напиши Добавить, внеси вклад в общее дело!";
                         }
                         CurrentDialogueStatus = 0;
                         break;
                     case 31://посещении
-                        try {
-                            Map<String, String[]> Data = loadData();
-                            String Visit = Integer.toString(Integer.parseInt(Data.get(Message)[2]) + 1);
-                            Date Date = new Date();
-                            String DateStr = Date.toString().split(" ")[2] + " " +
-                                    Date.toString().split(" ")[1] + " " +
-                                    Date.toString().split(" ")[3];
-                            String[] Temp = {Data.get(Message)[0], Data.get(Message)[1], Visit, DateStr};
-                            Data.put(Message, Temp);
-                            saveData(Data);
-                            answer = "Успешно";
-
-                        } catch (Exception e) {
+                        if (db.isRoomExists(Integer.parseInt(Message))) {
+                            CurrentRoom = db.getRoom(Integer.parseInt(Message));
+                            CurrentRoom.newVisit(new Date());
+                            db.updateRoom(CurrentRoom);
+                            answer = "Успешно обновлена информация о комнате " + CurrentRoom.getRoom_Number();
+                        }
+                        else {
                             answer = "Хмм, похоже такой комнаты нет в моей базе...\n Напиши Добавить, внеси вклад в общее дело!";
                         }
                         CurrentDialogueStatus = 0;
                         break;
                     case 51://добавление новой комнаты
-                        try {
-                            Map<String, String[]> Data = loadData();
-                            Message += "/0/Никогда";
-                            String[] NewRoom = Message.split("/");
-                            Data.put(NewRoom[0], NewRoom);
-                            saveData(Data);
-                            answer = "Успешно";
 
-                        } catch (Exception e) {
-                            answer = "Что-то пошло не так((\nПередай вот это @RenaultLogan496\n" + e + "\nА ещё ты базу данных сломал.\nТоже ему передай, он обрадуется";
-                        }
+                            CurrentRoom = new Room(Integer.parseInt(Message),0,"Never", 0);
+                            db.addRoom(CurrentRoom);
+                            answer = "Успешно добавлена комната " + CurrentRoom.getRoom_Number();
+
                         CurrentDialogueStatus = 0;
                         break;
 

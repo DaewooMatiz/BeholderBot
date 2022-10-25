@@ -34,6 +34,28 @@ public class DataBase {
         return result_set.getLong("User_ID") > 0;
     }
 
+    public void addRoom(Room room) throws SQLException{
+        statement.execute("INSERT INTO 'Rooms' ('Room_Number', 'Visited_Times', 'Last_Visit', 'Warnings') VALUES ('" +
+                room.getRoom_Number() + "', '" + room.getVisited_Times() + "', '" + room.getLast_Visit() + "', '" + room.getWarnings() + "'); ");
+    }
+
+    public Room getRoom(int Room_Number) throws SQLException{
+        result_set = statement.executeQuery("SELECT * FROM Rooms WHERE Room_Number IN ('" + Room_Number + "')");
+        return new Room(result_set.getInt("Room_Number"), result_set.getInt("Visited_Times"),
+                result_set.getString("Last_Visit"), result_set.getInt("Warnings"));
+    }
+
+    public Boolean isRoomExists(int Room_Number) throws SQLException{
+        result_set = statement.executeQuery("SELECT * FROM Rooms WHERE Room_Number IN ('" + Room_Number + "')");
+        return result_set.getLong("Room_Number") > 0;
+    }
+
+    public void updateRoom(Room room) throws SQLException{
+        statement.execute("UPDATE Rooms " +
+                "SET Visited_Times = '" + room.getVisited_Times() +"', Last_Visit = '" + room.getLast_Visit() + "', Warnings = '" + room.getWarnings() + "' " +
+                "WHERE Room_Number = " + room.getRoom_Number() + ";");
+    }
+
     public void closeDataBase() throws SQLException{
         connection.close();
         result_set.close();
