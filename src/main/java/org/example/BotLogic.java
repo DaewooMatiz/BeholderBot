@@ -70,7 +70,7 @@ public class BotLogic {
                                 break;
                             case 5:
                                 if (CurrentUser.Is_Admin) {
-                                    answer = "Введите данные о комнате следующим образом:\n Номер/Фамилии через пробел";
+                                    answer = "Введите номер комнаты";
                                     CurrentDialogueStatus = 51;
                                 } else {
                                     answer = "У вас нет доступа к этой функции";
@@ -109,10 +109,14 @@ public class BotLogic {
                         CurrentDialogueStatus = 0;
                         break;
                     case 51://добавление новой комнаты
-
-                            CurrentRoom = new Room(Integer.parseInt(Message),0,"Never", 0);
-                            db.addRoom(CurrentRoom);
-                            answer = "Успешно добавлена комната " + CurrentRoom.getRoom_Number();
+                           if (db.isRoomExists(Integer.parseInt(Message))) {
+                               answer = "Такая комната уже существует";
+                           }
+                           else {
+                               CurrentRoom = new Room(Integer.parseInt(Message), 0, "Никогда", 0);
+                               db.addRoom(CurrentRoom);
+                               answer = "Успешно добавлена комната " + CurrentRoom.getRoom_Number();answer = "Такая комната уже существует";
+                           }
 
                         CurrentDialogueStatus = 0;
                         break;
