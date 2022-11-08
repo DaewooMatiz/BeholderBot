@@ -16,11 +16,11 @@ public class BotLogic {
             return 0;
         if (text.contains("Помощь"))
             return 1;
-        if (text.contains("Информация"))
+        if (text.contains("Инфа"))
             return 2;
         if (text.contains("Посетил"))
             return 3;
-        if (text.contains("Нарушения"))
+        if (text.contains("Нарушение"))
             return 4;
         if (text.contains("Добавить"))
             return 5;
@@ -48,40 +48,48 @@ public class BotLogic {
                     case 0:// главное меню
                         switch (textToVariants(Message)) {
                             case 1:
-                                answer = "Бот помщник Beholder призван помогать скифам выбирать комнаты для посещения, контроллировать нарушителей, следить за графиком дежурств." +
-                                        "Возможные команды: Помощь, Нарушители";
+                                answer = "Привет, " + CurrentUser.getUserName() + "!\nЯ бот-помощник Бехолдер!\n" +
+                                        "Инфа - информация о комнате\n" +
+                                        "Посетил - сообщить о посещении комнаты\n" +
+                                        "Нарушение - сообщить о нарушении в комнате\n" +
+                                        "Добавить - добавить комнату\n" +
+                                        "Вопросы, пожелания, оскорбления в грубой форме пиши ему: @RenaultLogan496";
                                 break;
                             case 2:
-                                if (CurrentUser.Is_SKIF) {
-                                    answer = "Введите номер комнаты";
+                                if (CurrentUser.isSKIF()) {
+                                    answer = "Введи номер комнаты";
                                     CurrentDialogueStatus = 21;
                                 } else {
-                                    answer = "У вас нет доступа к этой функции";
+                                    answer = "У тебя нет доступа к этой функции(";
                                 }
 
                                 break;
                             case 3:
-                                if (CurrentUser.Is_SKIF) {
-                                    answer = "Введите номер комнаты";
+                                if (CurrentUser.isSKIF()) {
+                                    answer = "Введи номер комнаты";
                                     CurrentDialogueStatus = 31;
                                 } else {
-                                    answer = "У вас нет доступа к этой функции";
+                                    answer = "У тебя нет доступа к этой функции(";
+                                }
+                                break;
+                            case 4:
+                                if (CurrentUser.isSKIF()) {
+                                    answer = "Введи номер комнаты";
+                                    CurrentDialogueStatus = 41;
+                                } else {
+                                    answer = "У тебя нет доступа к этой функции(";
                                 }
                                 break;
                             case 5:
-                                if (CurrentUser.Is_Admin) {
-                                    answer = "Введите номер комнаты";
+                                if (CurrentUser.isAdmin()) {
+                                    answer = "Введи номер комнаты";
                                     CurrentDialogueStatus = 51;
                                 } else {
-                                    answer = "У вас нет доступа к этой функции";
+                                    answer = "У тебя нет доступа к этой функции(";
                                 }
                                 break;
                             default:
-                                answer = "Привет," + CurrentUser.User_Name + "!\n Я бот-помощник Бехолдер!\n" +
-                                        "Информация - информация о комнате\n" +
-                                        "Посетил - сообщить о посещении комнаты\n" +
-                                        "Добавить - добавить комнату\n" +
-                                        "Вопросы, пожелания, оскорбления в грубой форме пиши ему: @RenaultLogan496";
+                                answer = "Напиши помощь чтобы получить список команд";
                                 break;
                         }
                         break;
@@ -89,7 +97,8 @@ public class BotLogic {
                         if (db.isRoomExists(Integer.parseInt(Message))) {
                             CurrentRoom = db.getRoom(Integer.parseInt(Message));
                             answer = "Комната номер " + CurrentRoom.getRoom_Number() + "\nПосещений: " + CurrentRoom.getVisited_Times() +
-                                    "\nПоследнее посещение: " + CurrentRoom.getLast_Visit() + "\nНарушений: " + CurrentRoom.getWarnings();
+                                    "\nПоследнее посещение: " + CurrentRoom.getLast_Visit() + "\nНарушений: " + CurrentRoom.getWarnings()
+                                    + "\nПоследнее нарушение: " + CurrentRoom.getLast_Warning();
                         }
                         else {
                             answer = "Хмм, похоже такой комнаты нет в моей базе...\n Напиши Добавить, внеси вклад в общее дело!";
@@ -101,7 +110,19 @@ public class BotLogic {
                             CurrentRoom = db.getRoom(Integer.parseInt(Message));
                             CurrentRoom.newVisit(new Date());
                             db.updateRoom(CurrentRoom);
-                            answer = "Успешно обновлена информация о комнате " + CurrentRoom.getRoom_Number();
+                            answer = "Посещение комнаты " + CurrentRoom.getRoom_Number() + " отмечено.";
+                        }
+                        else {
+                            answer = "Хмм, похоже такой комнаты нет в моей базе...\n Напиши Добавить, внеси вклад в общее дело!";
+                        }
+                        CurrentDialogueStatus = 0;
+                        break;
+                    case 41://посещении
+                        if (db.isRoomExists(Integer.parseInt(Message))) {
+                            CurrentRoom = db.getRoom(Integer.parseInt(Message));
+                            CurrentRoom.newWarning(new Date());
+                            db.updateRoom(CurrentRoom);
+                            answer = "Нарушение в комнате " + CurrentRoom.getRoom_Number() + " отмечено.";
                         }
                         else {
                             answer = "Хмм, похоже такой комнаты нет в моей базе...\n Напиши Добавить, внеси вклад в общее дело!";
@@ -109,14 +130,12 @@ public class BotLogic {
                         CurrentDialogueStatus = 0;
                         break;
                     case 51://добавление новой комнаты
-                           if (db.isRoomExists(Integer.parseInt(Message))) {
-                               answer = "Такая комната уже существует";
-                           }
-                           else {
-                               CurrentRoom = new Room(Integer.parseInt(Message), 0, "Никогда", 0);
-                               db.addRoom(CurrentRoom);
-                               answer = "Успешно добавлена комната " + CurrentRoom.getRoom_Number();answer = "Такая комната уже существует";
-                           }
+                        if (!db.isRoomExists(Integer.parseInt(Message))) {
+                            CurrentRoom = new Room(Integer.parseInt(Message), 0, "Никогда", 0, "Никогда");
+                            db.addRoom(CurrentRoom);
+                            answer = "Теперь в базе есть комната " + CurrentRoom.getRoom_Number();
+                        }
+                        else answer = "Такая комната уже есть";
 
                         CurrentDialogueStatus = 0;
                         break;
@@ -126,13 +145,9 @@ public class BotLogic {
                 answer = "Похоже тебя нет в базе. Добавляю...";
                 db.addUser(CurrentUser);
             }
-
-
-
         } catch (SQLException e) {
             answer = e.toString();
         }
-
 
         return answer;
     }

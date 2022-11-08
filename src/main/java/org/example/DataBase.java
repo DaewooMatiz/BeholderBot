@@ -20,7 +20,7 @@ public class DataBase {
 
     public void addUser(User hooman) throws SQLException{
         statement.execute("INSERT INTO 'Users' ('User_ID', 'User_Name', 'Is_SKIF', 'Is_Admin') VALUES ('" +
-                hooman.User_ID + "', '" + hooman.User_Name + "', '" + boolToInt(hooman.Is_SKIF) + "', '" + boolToInt(hooman.Is_Admin) + "'); ");
+                hooman.getUserID() + "', '" + hooman.getUserName() + "', '" + boolToInt(hooman.isSKIF()) + "', '" + boolToInt(hooman.isAdmin()) + "'); ");
     }
 
     public User getUser(Long User_ID) throws SQLException{
@@ -35,14 +35,14 @@ public class DataBase {
     }
 
     public void addRoom(Room room) throws SQLException{
-        statement.execute("INSERT INTO 'Rooms' ('Room_Number', 'Visited_Times', 'Last_Visit', 'Warnings') VALUES ('" +
-                room.getRoom_Number() + "', '" + room.getVisited_Times() + "', '" + room.getLast_Visit() + "', '" + room.getWarnings() + "'); ");
+        statement.execute("INSERT INTO 'Rooms' ('Room_Number', 'Visited_Times', 'Last_Visit', 'Warnings', 'Last_Warning') VALUES ('" +
+                room.getRoom_Number() + "', '" + room.getVisited_Times() + "', '" + room.getLast_Visit() + "', '" + room.getWarnings() + "', '" + room.getLast_Warning() + "'); ");
     }
 
     public Room getRoom(int Room_Number) throws SQLException{
         result_set = statement.executeQuery("SELECT * FROM Rooms WHERE Room_Number IN ('" + Room_Number + "')");
         return new Room(result_set.getInt("Room_Number"), result_set.getInt("Visited_Times"),
-                result_set.getString("Last_Visit"), result_set.getInt("Warnings"));
+                result_set.getString("Last_Visit"), result_set.getInt("Warnings"), result_set.getString("Last_Warning"));
     }
 
     public Boolean isRoomExists(int Room_Number) throws SQLException{
@@ -52,13 +52,9 @@ public class DataBase {
 
     public void updateRoom(Room room) throws SQLException{
         statement.execute("UPDATE Rooms " +
-                "SET Visited_Times = '" + room.getVisited_Times() +"', Last_Visit = '" + room.getLast_Visit() + "', Warnings = '" + room.getWarnings() + "' " +
+                "SET Visited_Times = '" + room.getVisited_Times() +"', Last_Visit = '" + room.getLast_Visit() + "', Warnings = '" +
+                room.getWarnings() + "', Last_Warning = '" + room.getLast_Warning() + "' " +
                 "WHERE Room_Number = " + room.getRoom_Number() + ";");
     }
 
-    public void closeDataBase() throws SQLException{
-        connection.close();
-        result_set.close();
-        statement.close();
-    }
 }
