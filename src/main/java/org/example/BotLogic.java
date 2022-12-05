@@ -90,7 +90,7 @@ public class BotLogic {
             db.updateViolator(violator);
             result = "Нарушение успешно отмечено.";
         } catch(NumberFormatException e) {
-            result = "Да никак вы блять не научитесь!";
+            result = "Айди циферками пишется.";
         }
         return result;
     }
