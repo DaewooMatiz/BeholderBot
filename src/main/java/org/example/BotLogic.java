@@ -121,7 +121,7 @@ public class BotLogic {
                     "\nНарушений: " + violator.getViolations() +
                     "\nПоследнее нарушение: " + violator.getLast_Violation();
         } catch(NumberFormatException e) {
-            result = "Да никак вы блять не научитесь!";
+            result = "Айди циферками пишется.";
         }
         return result;
     }
