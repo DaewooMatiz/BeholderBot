@@ -1,4 +1,5 @@
 package org.example;
+
 import java.sql.*;
 import java.util.ArrayList;
 
@@ -59,6 +60,15 @@ public class DataBase {
                 "SET Visited_Times = '0', Last_Visit = 'Никогда';");
     }
 
+    public ArrayList getUnvisitedRooms() throws SQLException{
+        ArrayList array = new ArrayList<>();
+        result_set = statement.executeQuery("SELECT * FROM Rooms WHERE Visited_Times IN ('0')");
+        while(result_set.next()){
+            array.add(result_set.getInt("Room_Number"));
+        }
+        return array;
+    }
+
     public void addViolator(Violator violator) throws SQLException{
         statement.execute("INSERT INTO Violators ('Violator_FullName', 'Room', 'Violations', 'Last_Violation') VALUES ('" +
                 violator.getViolatorFullName() + "', '" + violator.getViolatorRoom() + "', '" + violator.getViolations() + "', '" + violator.getLast_Violation() + "'); ");
@@ -90,24 +100,12 @@ public class DataBase {
 
     public boolean isViolatorsExists(String Violator_FullName) throws SQLException{
         result_set = statement.executeQuery("SELECT * FROM Violators WHERE Violator_FullName LIKE ('%" + Violator_FullName + "%')");
-        if (result_set.getInt("Violator_ID") != 0)
-        {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return result_set.getInt("Violator_ID") != 0;
     }
 
     public boolean isViolatorsExists(int Room) throws SQLException{
         result_set = statement.executeQuery("SELECT * FROM Violators WHERE Room IN ('" + Room + "')");
-        if (result_set.getInt("Violator_ID") != 0)
-        {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return result_set.getInt("Violator_ID") != 0;
     }
 
     public void updateViolator(Violator violator) throws SQLException{

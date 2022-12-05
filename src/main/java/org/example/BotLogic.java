@@ -34,8 +34,8 @@ public class BotLogic {
     private String findViolators(String name) throws SQLException {
         ArrayList array = db.findViolators(name);
         String result = "";
-        for (int i = 0; i < array.size(); i++) {
-            Violator violator = db.getViolator((int) array.get(i));
+        for (Object o : array) {
+            Violator violator = db.getViolator((int) o);
             result += violator.getViolatorFullName() + "(" + violator.getViolatorID() + ")\n";
         }
         return result;
@@ -43,8 +43,8 @@ public class BotLogic {
     private String findViolators(int room) throws SQLException {
         ArrayList array = db.findViolators(room);
         String result = "";
-        for (int i = 0; i < array.size(); i++) {
-            Violator violator = db.getViolator((int) array.get(i));
+        for (Object o : array) {
+            Violator violator = db.getViolator((int) o);
             result += violator.getViolatorFullName() + "(" + violator.getViolatorID() + ")\n";
         }
         return result;
@@ -159,6 +159,14 @@ public class BotLogic {
         }
         return result;
     }
+    private String roomsToVisit() throws SQLException{
+        ArrayList array = db.getUnvisitedRooms();
+        String result = "";
+        for (Object o : array) {
+            result += o +"\n";
+        }
+        return result;
+    }
 
     public void setDialogueStatus(int status) {
         CurrentDialogueStatus = status;
@@ -224,7 +232,8 @@ public class BotLogic {
                                 break;
                             case 6:
                                 if (CurrentUser.isSKIF()) {
-                                    answer = "Выходишь на дежурство, " + CurrentUser.getUserName() + "? Так держать!";
+                                    answer = "Выходишь на дежурство, " + CurrentUser.getUserName() + "? Так держать!\n" +
+                                    "Можешь посетить эти комнаты: \n" + roomsToVisit();
                                 } else {
                                     answer = "У тебя нет доступа к этой функции(";
                                 }
@@ -274,7 +283,7 @@ public class BotLogic {
                             answer = "Комната или Нарушитель?";
                         }
                         break;
-                    case 71:// добавить развилка
+                    case 71:// сброс развилка
                         if (Message.contains("Да")) {
                             db.resetRooms();
                             answer = "Информация о посещении комнат сброшена";
