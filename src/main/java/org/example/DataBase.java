@@ -1,15 +1,14 @@
 package org.example;
 import java.sql.*;
+import java.util.ArrayList;
+
 public class DataBase {
     private final Connection connection;
     private final Statement statement;
     private ResultSet result_set;
 
     private int boolToInt(Boolean input){
-        if (input)
-            return 1;
-        else
-            return 0;
+        return input ? 1 : 0;
     }
 
     public DataBase(String path) throws SQLException, ClassNotFoundException {
@@ -35,14 +34,14 @@ public class DataBase {
     }
 
     public void addRoom(Room room) throws SQLException{
-        statement.execute("INSERT INTO 'Rooms' ('Room_Number', 'Visited_Times', 'Last_Visit', 'Warnings', 'Last_Warning') VALUES ('" +
-                room.getRoom_Number() + "', '" + room.getVisited_Times() + "', '" + room.getLast_Visit() + "', '" + room.getWarnings() + "', '" + room.getLast_Warning() + "'); ");
+        statement.execute("INSERT INTO 'Rooms' ('Room_Number', 'Visited_Times', 'Last_Visit') VALUES ('" +
+                room.getRoom_Number() + "', '" + room.getVisited_Times() + "', '" + room.getLast_Visit() + "'); ");
     }
 
     public Room getRoom(int Room_Number) throws SQLException{
         result_set = statement.executeQuery("SELECT * FROM Rooms WHERE Room_Number IN ('" + Room_Number + "')");
         return new Room(result_set.getInt("Room_Number"), result_set.getInt("Visited_Times"),
-                result_set.getString("Last_Visit"), result_set.getInt("Warnings"), result_set.getString("Last_Warning"));
+                result_set.getString("Last_Visit"));
     }
 
     public Boolean isRoomExists(int Room_Number) throws SQLException{
@@ -50,11 +49,70 @@ public class DataBase {
         return result_set.getLong("Room_Number") > 0;
     }
 
-    public void updateRoom(Room room) throws SQLException{
+    public void updateRoom(Room room) throws SQLException {
         statement.execute("UPDATE Rooms " +
-                "SET Visited_Times = '" + room.getVisited_Times() +"', Last_Visit = '" + room.getLast_Visit() + "', Warnings = '" +
-                room.getWarnings() + "', Last_Warning = '" + room.getLast_Warning() + "' " +
+                "SET Visited_Times = '" + room.getVisited_Times() + "', Last_Visit = '" + room.getLast_Visit() + "' " +
                 "WHERE Room_Number = " + room.getRoom_Number() + ";");
     }
+    public void resetRooms() throws SQLException {
+        statement.execute("UPDATE Rooms " +
+                "SET Visited_Times = '0', Last_Visit = 'Никогда';");
+    }
 
+    public void addViolator(Violator violator) throws SQLException{
+        statement.execute("INSERT INTO Violators ('Violator_FullName', 'Room', 'Violations', 'Last_Violation') VALUES ('" +
+                violator.getViolatorFullName() + "', '" + violator.getViolatorRoom() + "', '" + violator.getViolations() + "', '" + violator.getLast_Violation() + "'); ");
+
+    }
+    public Violator getViolator(int Violator_ID) throws SQLException {
+        result_set = statement.executeQuery("SELECT * FROM Violators WHERE Violator_ID IN ('" + Violator_ID + "')");
+        return new Violator(result_set.getInt("Violator_ID"), result_set.getString("Violator_FullName"),
+                result_set.getInt("Room"), result_set.getInt("Violations"), result_set.getString("Last_Violation"));
+    }
+
+    public ArrayList findViolators(int Room) throws SQLException{
+        ArrayList array = new ArrayList<>();
+        result_set = statement.executeQuery("SELECT * FROM Violators WHERE Room IN ('" + Room + "')");
+        while(result_set.next()){
+            array.add(result_set.getInt("Violator_ID"));
+        }
+        return array;
+    }
+
+    public ArrayList findViolators(String Violator_FullName) throws SQLException{
+        ArrayList array = new ArrayList<>();
+        result_set = statement.executeQuery("SELECT * FROM Violators WHERE Violator_FullName LIKE ('%" + Violator_FullName + "%')");
+        while(result_set.next()){
+            array.add(result_set.getInt("Violator_ID"));
+        }
+        return array;
+    }
+
+    public boolean isViolatorsExists(String Violator_FullName) throws SQLException{
+        result_set = statement.executeQuery("SELECT * FROM Violators WHERE Violator_FullName LIKE ('%" + Violator_FullName + "%')");
+        if (result_set.getInt("Violator_ID") != 0)
+        {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    public boolean isViolatorsExists(int Room) throws SQLException{
+        result_set = statement.executeQuery("SELECT * FROM Violators WHERE Room IN ('" + Room + "')");
+        if (result_set.getInt("Violator_ID") != 0)
+        {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    public void updateViolator(Violator violator) throws SQLException{
+        statement.execute("UPDATE Violators " +
+                "SET Violations = '" + violator.getViolations() +"', Last_Violation = '" + violator.getLast_Violation() + "'"+
+                "WHERE Violator_ID = " + violator.getViolatorID() + ";");
+    }
 }

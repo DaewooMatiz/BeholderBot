@@ -5,16 +5,15 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 public class BeholderBot extends TelegramLongPollingBot {
-    public BeholderBot(String botToken, String botName, BotLogic botLogic){
-        this.botLogic = botLogic;
-        this.botToken = botToken;
-        this.botName = botName;
-    }
-
-    private final BotLogic botLogic;
-    private final String botToken;
     private final String botName;
+    private final String botToken;
+    private final BotLogic botLogic;
     int CurrentDialogueStatus = 0;
+    public BeholderBot(String botName, String botToken, BotLogic botLogic){
+        this.botName = botName;
+        this.botToken = botToken;
+        this.botLogic = botLogic;
+    }
     @Override
     public void onUpdateReceived(Update update) {
 
