@@ -2,7 +2,12 @@ package org.example;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class BeholderBot extends TelegramLongPollingBot {
     private final String botName;
@@ -26,6 +31,20 @@ public class BeholderBot extends TelegramLongPollingBot {
             String messageText = update.getMessage().getText();
             message.setText(botLogic.createAnswer(messageText, user_ID, user_name));
             CurrentDialogueStatus = botLogic.getDialogueStatusUpdate();
+            ReplyKeyboardMarkup replyKeyboardMarkup = new
+                    ReplyKeyboardMarkup();
+            message.setReplyMarkup(replyKeyboardMarkup);
+            replyKeyboardMarkup.setSelective(true);
+            replyKeyboardMarkup.setResizeKeyboard(true);
+            replyKeyboardMarkup.setOneTimeKeyboard(false);
+            List<KeyboardRow> keyboard = new ArrayList<>();
+            String[] buttons = botLogic.getButtons();
+            for (String button_str : buttons) {
+                KeyboardRow button = new KeyboardRow();
+                button.add(button_str);
+                keyboard.add(button);
+            }
+            replyKeyboardMarkup.setKeyboard(keyboard);
             try {
                 execute(message);
             } catch (TelegramApiException e) {

@@ -1,5 +1,6 @@
 package org.example;
 
+import java.sql.Array;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -9,6 +10,7 @@ public class BotLogic {
     }
     private int CurrentDialogueStatus = 0;
     private final DataBase db;
+    private String[] buttons;
 
 
     private int textToVariants(String text) {
@@ -16,7 +18,7 @@ public class BotLogic {
             return 0;
         if (text.contains("Помощь"))
             return 1;
-        if (text.contains("Инфа"))
+        if (text.contains("Информация"))
             return 2;
         if (text.contains("Посетил"))
             return 3;
@@ -118,6 +120,7 @@ public class BotLogic {
             Violator violator = db.getViolator(Integer.parseInt(key));
             result = "Полное имя: " + violator.getViolatorFullName() +
                     "\nАйди: " + violator.getViolatorID() +
+                    "\nКомната: " + violator.getViolatorRoom() +
                     "\nНарушений: " + violator.getViolations() +
                     "\nПоследнее нарушение: " + violator.getLast_Violation();
         } catch(NumberFormatException e) {
@@ -167,13 +170,57 @@ public class BotLogic {
         }
         return result;
     }
+    private void buttonsMainMenu(){
+        buttons = new String[5];
+        buttons[0] = "Информация";
+        buttons[1] = "Посетил";
+        buttons[2] = "Нарушение";
+        buttons[3] = "Добавить";
+        buttons[4] = "Дежурство";
+    }
+    private void buttonsRoomViolator(){
+        buttons = new String[3];
+        buttons[0] = "Комната";
+        buttons[1] = "Нарушитель";
+        buttons[2] = "Выход";
+    }
+    private void buttonsViolatorChoose(String key) throws SQLException{
+        try {
+            if (db.isViolatorsExists(Integer.parseInt(key))) {
+                String input = findViolators(Integer.parseInt(key));
+                input = input.replaceAll("[^0-9\n]", "");
+                buttons = input.split("\n");
+            } else {
+                buttons = new String[2];
+                buttons[0] = "Добавить";
+                buttons[1] = "Выход";
+            }
+        } catch(NumberFormatException e) {
+            if (db.isViolatorsExists(key)) {
+                String input = findViolators(key);
+                input = input.replaceAll("[^0-9\n]", "");
+                buttons = input.split("\n");
+            } else {
+                buttons = new String[2];
+                buttons[0] = "Добавить";
+                buttons[1] = "Выход";
+            }
+
+        }
+    }
+    private void buttonsCommon(){
+        buttons = new String[1];
+        buttons[0] = "Выход";
+    }
 
     public void setDialogueStatus(int status) {
         CurrentDialogueStatus = status;
     }
-
     public int getDialogueStatusUpdate() {
         return CurrentDialogueStatus;
+    }
+    public String[] getButtons(){
+        return buttons;
     }
 
 
@@ -184,160 +231,202 @@ public class BotLogic {
         try {
             if (db.isUserExists(user_ID)) {
                 CurrentUser = db.getUser(user_ID);
-                switch (CurrentDialogueStatus) {
+                if (textToVariants(Message) == 0) {
+                    answer = "Главное меню";
+                    CurrentDialogueStatus = 0;
+                    buttonsMainMenu();
+                } else {
+                    switch (CurrentDialogueStatus) {
 
-                    case 0:// главное меню
-                        switch (textToVariants(Message)) {
-                            case 1:
-                                answer = "Привет, " + CurrentUser.getUserName() + "!\nЯ бот-помощник Бехолдер!\n" +
-                                        "Информация - информация о комнатах и нарушителях\n" +
-                                        "Посетил - сообщить о посещении комнаты\n" +
-                                        "Нарушение - сообщить о нарушителе\n" +
-                                        "Добавить - добавить комнату\n" +
-                                        "Дежурство - сообщить о выходе на дежурство и получить полезную информацию\n" +
-                                        "Вопросы, пожелания, оскорбления в грубой форме пиши ему: @RenaultLogan496";
-                                break;
-                            case 2:
-                                if (CurrentUser.isSKIF()) {
-                                    answer = "Комната или Нарушитель?";
-                                    CurrentDialogueStatus = 21;
-                                } else {
-                                    answer = "У тебя нет доступа к этой функции(";
-                                }
+                        case 0:// главное меню
 
-                                break;
-                            case 3:
-                                if (CurrentUser.isSKIF()) {
-                                    answer = "Введи номер комнаты";
-                                    CurrentDialogueStatus = 31;
-                                } else {
-                                    answer = "У тебя нет доступа к этой функции(";
-                                }
-                                break;
-                            case 4:
-                                if (CurrentUser.isSKIF()) {
-                                    answer = "Введи имя или номер комнаты нарушителя";
-                                    CurrentDialogueStatus = 41;
-                                } else {
-                                    answer = "У тебя нет доступа к этой функции(";
-                                }
-                                break;
-                            case 5:
-                                if (CurrentUser.isAdmin()) {
-                                    answer = "Комната или Нарушитель?";
-                                    CurrentDialogueStatus = 51;
-                                } else {
-                                    answer = "У тебя нет доступа к этой функции(";
-                                }
-                                break;
-                            case 6:
-                                if (CurrentUser.isSKIF()) {
-                                    answer = "Выходишь на дежурство, " + CurrentUser.getUserName() + "? Так держать!\n" +
-                                    "Можешь посетить эти комнаты: \n" + roomsToVisit();
-                                } else {
-                                    answer = "У тебя нет доступа к этой функции(";
-                                }
-                                break;
-                            case 7:
-                                if (CurrentUser.isAdmin()) {
-                                    answer = "Уверен? Да/Нет";
-                                    CurrentDialogueStatus = 71;
-                                } else {
-                                    answer = "У тебя нет доступа к этой функции(";
-                                }
-                                break;
-                            default:
-                                answer = "Напиши помощь чтобы получить список команд";
-                                break;
+                            switch (textToVariants(Message)) {
+                                case 1:
+                                    answer = "Привет, " + CurrentUser.getUserName() + "!\nЯ бот-помощник Бехолдер!\n" +
+                                            "Информация - информация о комнатах и нарушителях\n" +
+                                            "Посетил - сообщить о посещении комнаты\n" +
+                                            "Нарушение - сообщить о нарушителе\n" +
+                                            "Добавить - добавить комнату\n" +
+                                            "Дежурство - сообщить о выходе на дежурство и получить полезную информацию\n" +
+                                            "Вопросы, пожелания, оскорбления в грубой форме пиши ему: @RenaultLogan496";
+                                    buttonsMainMenu();
+                                    break;
+                                case 2:
+                                    if (CurrentUser.isSKIF()) {
+                                        answer = "Комната или Нарушитель?";
+                                        CurrentDialogueStatus = 21;
+                                        buttonsRoomViolator();
+                                    } else {
+                                        answer = "У тебя нет доступа к этой функции(";
+                                        buttonsMainMenu();
+                                    }
 
-                        }
-                        break;
-                    case 21:// инфа развилка
-                        if (Message.contains("Комната")) {
-                            CurrentDialogueStatus = 211;
-                            answer = "Введи номер комнаты";
-                        } else if (Message.contains("Нарушитель")) {
-                            CurrentDialogueStatus = 212;
-                            answer = "Введи имя или номер комнаты нарушителя";
-                        } else {
-                            answer = "Комната или Нарушитель?";
-                        }
-                        break;
-                    case 31:// посещение
-                        answer = newVisit(Message);
-                        CurrentDialogueStatus = 0;
-                        break;
-                    case 41: // результат поиска
-                        answer = findViolatorsResult(Message);
-                        CurrentDialogueStatus = 411;
-                        break;
-                    case 51:// добавить развилка
-                        if (Message.contains("Комната")) {
-                            CurrentDialogueStatus = 511;
-                            answer = "Введи номер комнаты";
-                        } else if (Message.contains("Нарушитель")) {
-                            CurrentDialogueStatus = 512;
-                            answer = "Введи информацию о нарушителе следующим образом:\n" +
-                                    "Полное имя, комната в которой проживает";
-                        } else {
-                            answer = "Комната или Нарушитель?";
-                        }
-                        break;
-                    case 71:// сброс развилка
-                        if (Message.contains("Да")) {
-                            db.resetRooms();
-                            answer = "Информация о посещении комнат сброшена";
-                            CurrentDialogueStatus = 0;
-                        } else if (Message.contains("Нет")) {
-                            CurrentDialogueStatus = 0;
-                            answer = "Ошибся? Бывает.";
-                        } else {
-                            answer = "Уверен? Да/Нет";
-                        }
-                        break;
+                                    break;
+                                case 3:
+                                    if (CurrentUser.isSKIF()) {
+                                        answer = "Введи номер комнаты";
+                                        CurrentDialogueStatus = 31;
+                                        buttonsCommon();
+                                    } else {
+                                        answer = "У тебя нет доступа к этой функции(";
+                                        buttonsMainMenu();
+                                    }
+                                    break;
+                                case 4:
+                                    if (CurrentUser.isSKIF()) {
+                                        answer = "Введи имя или номер комнаты нарушителя";
+                                        CurrentDialogueStatus = 41;
+                                        buttonsCommon();
+                                    } else {
+                                        answer = "У тебя нет доступа к этой функции(";
+                                        buttonsMainMenu();
+                                    }
+                                    break;
+                                case 5:
+                                    if (CurrentUser.isAdmin()) {
+                                        answer = "Комната или Нарушитель?";
+                                        CurrentDialogueStatus = 51;
+                                        buttonsRoomViolator();
+                                    } else {
+                                        answer = "У тебя нет доступа к этой функции(";
+                                    }
+                                    break;
+                                case 6:
+                                    if (CurrentUser.isSKIF()) {
+                                        answer = "Выходишь на дежурство, " + CurrentUser.getUserName() + "? Так держать!\n" +
+                                                "Можешь посетить эти комнаты: \n" + roomsToVisit();
+                                        buttonsMainMenu();
+                                    } else {
+                                        answer = "У тебя нет доступа к этой функции(";
+                                        buttonsMainMenu();
+                                    }
+                                    break;
+                                case 7:
+                                    if (CurrentUser.isAdmin()) {
+                                        answer = "Уверен? Да/Нет";
+                                        CurrentDialogueStatus = 71;
+                                        buttonsCommon();
+                                    } else {
+                                        answer = "У тебя нет доступа к этой функции(";
+                                        buttonsMainMenu();
+                                    }
+                                    break;
+                                default:
+                                    answer = "Напиши помощь чтобы получить список команд";
+                                    buttonsMainMenu();
+                                    break;
 
-                    case 211:// инфа о комнате
-                        answer = getRoomInfo(Message);
-                        CurrentDialogueStatus = 0;
-                        break;
-                    case 212:// результат поиска
-                        answer = findViolatorsResult(Message);
-                        CurrentDialogueStatus = 2121;
-                        break;
-                    case 411:// нарушение
-                        if (Message.contains("Добавить")){
-                            answer = "Введи информацию о нарушителе следующим образом:\n" +
-                                    "Полное имя, комната в которой проживает";
-                            CurrentDialogueStatus = 512;
-                        } else {
-                            answer = newViolation(Message);
+                            }
+                            break;
+                        case 21:// инфа развилка
+                            if (Message.contains("Комната")) {
+                                CurrentDialogueStatus = 211;
+                                answer = "Введи номер комнаты";
+                                buttonsCommon();
+                            } else if (Message.contains("Нарушитель")) {
+                                CurrentDialogueStatus = 212;
+                                answer = "Введи имя или номер комнаты нарушителя";
+                                buttonsCommon();
+                            } else {
+                                answer = "Комната или Нарушитель?";
+                                buttonsRoomViolator();
+                            }
+                            break;
+                        case 31:// посещение
+                            answer = newVisit(Message);
                             CurrentDialogueStatus = 0;
-                        }
-                        break;
-                    case 511:// добавление новой комнаты
-                        answer = newRoom(Message);
-                        CurrentDialogueStatus = 0;
-                        break;
-                    case 512:// добавление новой комнаты
-                        answer = newViolator(Message);
-                        CurrentDialogueStatus = 0;
-                        break;
-                    case 2121:// инфа о нарушителе
-                        if (Message.contains("Добавить")){
-                            answer = "Введи информацию о нарушителе следующим образом:\n" +
-                                    "Полное имя, комната в которой проживает";
-                            CurrentDialogueStatus = 512;
-                        } else {
-                            answer = getViolatorInfo(Message);
+                            buttonsMainMenu();
+                            break;
+                        case 41: // результат поиска
+                            answer = findViolatorsResult(Message);
+                            CurrentDialogueStatus = 411;
+                            buttonsViolatorChoose(Message);
+                            break;
+                        case 51:// добавить развилка
+                            if (Message.contains("Комната")) {
+                                CurrentDialogueStatus = 511;
+                                answer = "Введи номер комнаты";
+                                buttonsCommon();
+                            } else if (Message.contains("Нарушитель")) {
+                                CurrentDialogueStatus = 512;
+                                answer = "Введи информацию о нарушителе следующим образом:\n" +
+                                        "Полное имя, комната в которой проживает";
+                                buttonsCommon();
+                            } else {
+                                answer = "Комната или Нарушитель?";
+                                buttonsRoomViolator();
+                            }
+                            break;
+                        case 71:// сброс развилка
+                            if (Message.contains("Да")) {
+                                db.resetRooms();
+                                answer = "Информация о посещении комнат сброшена";
+                                CurrentDialogueStatus = 0;
+                                buttonsMainMenu();
+                            } else if (Message.contains("Нет")) {
+                                CurrentDialogueStatus = 0;
+                                answer = "Ошибся? Бывает.";
+                                buttonsMainMenu();
+                            } else {
+                                answer = "Уверен? Да/Нет";
+                                buttonsCommon();
+                            }
+                            break;
+
+                        case 211:// инфа о комнате
+                            answer = getRoomInfo(Message);
                             CurrentDialogueStatus = 0;
-                        }
+                            buttonsMainMenu();
+                            break;
+                        case 212:// результат поиска
+                            answer = findViolatorsResult(Message);
+                            CurrentDialogueStatus = 2121;
+                            buttonsViolatorChoose(Message);
+                            break;
+                        case 411:// нарушение
+                            if (Message.contains("Добавить")) {
+                                answer = "Введи информацию о нарушителе следующим образом:\n" +
+                                        "Полное имя, комната в которой проживает";
+                                CurrentDialogueStatus = 512;
+                                buttonsCommon();
+                            } else {
+                                answer = newViolation(Message);
+                                CurrentDialogueStatus = 0;
+                                buttonsMainMenu();
+                            }
+                            break;
+                        case 511:// добавление новой комнаты
+                            answer = newRoom(Message);
+                            CurrentDialogueStatus = 0;
+                            buttonsMainMenu();
+                            break;
+                        case 512:// добавление нового нарушителя
+                            answer = newViolator(Message);
+                            CurrentDialogueStatus = 0;
+                            buttonsMainMenu();
+                            break;
+                        case 2121:// инфа о нарушителе
+                            if (Message.contains("Добавить")) {
+                                answer = "Введи информацию о нарушителе следующим образом:\n" +
+                                        "Полное имя, комната в которой проживает";
+                                CurrentDialogueStatus = 512;
+                                buttonsCommon();
+                            } else {
+                                answer = getViolatorInfo(Message);
+                                CurrentDialogueStatus = 0;
+                                buttonsMainMenu();
+                            }
+                    }
                 }
             } else {
                 answer = "Похоже тебя нет в базе. Добавляю...";
+                buttonsMainMenu();
                 db.addUser(CurrentUser);
             }
         } catch (SQLException e) {
             answer = "Произошла ошибка! Информация для разработчика: " + e.toString();
+            CurrentDialogueStatus = 0;
+            buttonsMainMenu();
         }
 
         return answer;
